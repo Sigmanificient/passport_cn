@@ -1,0 +1,15 @@
+url="https://ppt.mfa.gov.cn/appo/index.html"
+console_message="GO RESERVE YOUR APPOINTMENT NOW https://ppt.mfa.gov.cn/appo/page/reservation.html"
+
+mail=1
+smtp_user="mymail@mymailhoster"
+smtp_password="the_smtp_password_HERE"
+smtp_server="smtp.gmail.com"
+mail_title="Chinese Passport renewal - 海外申请护照在线预约"
+mail_recipient="iwant_to_receive_mail@gmail.com"
+mail_message="GO RESERVE YOUR APPOINTMENT NOW https://ppt.mfa.gov.cn/appo/page/reservation.html"
+
+recordnumberhuifu="YOURPASSPORT_ID_HERE"
+questionhuifu="您父亲的姓名？"
+answerhuifu="YOUR_ANSWER_HERE"
+address="法国不见面办理"
