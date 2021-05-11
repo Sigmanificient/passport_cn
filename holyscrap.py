@@ -43,56 +43,57 @@ driver = webdriver.Remote(
 
 driver.maximize_window()
 
+#open URI
+driver.get(config.url)
+
+time.sleep(2)
+
+#button 我已知晓
+lpath="/html/body/div[9]/div[3]/div/button"
+lelem=driver.find_element_by_xpath(lpath)
+lelem.click()
+
+#link 继续未完成的申请预约
+lpath="/html/body/div[2]/div[1]/ul/li[2]/p[2]/span/a"
+lelem=driver.find_element_by_xpath(lpath)
+lelem.click()
+
+time.sleep(1)
+
+#POPUP
+#input 档 案 号
+lpath="/html/body/div[5]/div[2]/div[2]/table/tbody/tr[1]/td[2]/input"
+recordNumberHuifu=driver.find_element_by_xpath(lpath)
+recordNumberHuifu.send_keys(config.recordnumberhuifu)
+
+#select 验证问题
+lpath="/html/body/div[5]/div[2]/div[2]/table/tbody/tr[2]/td[2]/select"
+lelem=Select(driver.find_element_by_xpath(lpath))
+lelem.select_by_visible_text(config.questionhuifu)
+
+#input 答 案
+lpath="/html/body/div[5]/div[2]/div[2]/table/tbody/tr[3]/td[2]/input"
+answerHuifu=driver.find_element_by_xpath(lpath)
+answerHuifu.send_keys(config.answerhuifu)
+
+#button 提交
+lpath="/html/body/div[5]/div[3]/div/button[1]"
+lelem=driver.find_element_by_xpath(lpath)
+lelem.click()
+
+time.sleep(1)
+
+#button 进入预约
+lpath="/html/body/div[3]/div[1]/div[2]/form/p[2]/input[2]"
+lelem=driver.find_element_by_xpath(lpath)
+lelem.click()
+
+time.sleep(3)
+
 found = 0
 for t in range(100000):
 
-    #open URI
-    driver.get(config.url)
-
-    time.sleep(2)
-
-    #button 我已知晓
-    lpath="/html/body/div[9]/div[3]/div/button"
-    lelem=driver.find_element_by_xpath(lpath)
-    lelem.click()
-
-    #link 继续未完成的申请预约
-    lpath="/html/body/div[2]/div[1]/ul/li[2]/p[2]/span/a"
-    lelem=driver.find_element_by_xpath(lpath)
-    lelem.click()
-
     time.sleep(1)
-
-    #POPUP
-    #input 档 案 号
-    lpath="/html/body/div[5]/div[2]/div[2]/table/tbody/tr[1]/td[2]/input"
-    recordNumberHuifu=driver.find_element_by_xpath(lpath)
-    recordNumberHuifu.send_keys(config.recordnumberhuifu)
-
-    #select 验证问题
-    lpath="/html/body/div[5]/div[2]/div[2]/table/tbody/tr[2]/td[2]/select"
-    lelem=Select(driver.find_element_by_xpath(lpath))
-    lelem.select_by_visible_text(config.questionhuifu)
-
-    #input 答 案
-    lpath="/html/body/div[5]/div[2]/div[2]/table/tbody/tr[3]/td[2]/input"
-    answerHuifu=driver.find_element_by_xpath(lpath)
-    answerHuifu.send_keys(config.answerhuifu)
-
-    #button 提交
-    lpath="/html/body/div[5]/div[3]/div/button[1]"
-    lelem=driver.find_element_by_xpath(lpath)
-    lelem.click()
-
-    time.sleep(1)
-
-    #button 进入预约
-    lpath="/html/body/div[3]/div[1]/div[2]/form/p[2]/input[2]"
-    lelem=driver.find_element_by_xpath(lpath)
-    lelem.click()
-
-    time.sleep(3)
-
     #button 确认
     lpath="/html/body/div[6]/div[3]/div/button"
     lelem=driver.find_element_by_xpath(lpath)
@@ -118,9 +119,11 @@ for t in range(100000):
                     if config.mail == 1:
                         send_mail(config.mail_recipient, config.mail_title, config.mail_message)
                     break
-        time.sleep(1)
+        time.sleep(2)
 
     if (found == 1):
         break
+
+    driver.refresh()
 
 driver.close()
