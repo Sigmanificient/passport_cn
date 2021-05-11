@@ -12,6 +12,9 @@ This is not humanly possible to spend 12 hours on the computer refreshing a page
 
 The system is too basic and does not allow to leave a mail address to be informed when a time slot is available or even to choose to be given an appointment, any date, any time.
 
+Also, the webpage under Firefox gives an alert that tells to use Chrome. Why ? no reason given.
+Tried under Firefox and it works just fine.
+
 ![Y U NO](bonus/yunogivemeappointment.png)
 
 ## Solution
@@ -35,7 +38,7 @@ Script running as below:
 retrieve the following packages from AUR:
 
 - [google-chrome](https://aur.archlinux.org/packages/google-chrome/)
-- [chromedriver](https://aur.archlinux.org/packages/chromedriver/)
+- [geckodriver](https://archlinux.org/packages/community/x86_64/geckodriver/) or [chromedriver](https://aur.archlinux.org/packages/chromedriver/)
 
 ```bash
 ./init.sh
@@ -52,16 +55,13 @@ Configure the way you want:
 ```bash
 cp config.py.example config.py
 ```
+By default `browser="firefox"` you can use `browser="chrome"` if you prefer.
 
 On another tab of your terminal: run the python script
 ```bash
 source venv.sh
 ./start.sh
 ```
-
-# TODO
-
-- Run chrome with `--headless` flag ?
 
 # THANKS
 
