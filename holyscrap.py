@@ -37,9 +37,14 @@ def send_mail(to_address, subject, body):
 
 ############################################################
 
-driver = webdriver.Remote(
-   command_executor='http://127.0.0.1:4444/wd/hub',
-   desired_capabilities=DesiredCapabilities.CHROME)
+if config.browser == "firefox":
+    driver = webdriver.Remote(
+       command_executor='http://127.0.0.1:4444/wd/hub',
+       desired_capabilities=DesiredCapabilities.FIREFOX)
+else:
+    driver = webdriver.Remote(
+       command_executor='http://127.0.0.1:4444/wd/hub',
+       desired_capabilities=DesiredCapabilities.CHROME)
 
 driver.maximize_window()
 
@@ -47,6 +52,11 @@ driver.maximize_window()
 driver.get(config.url)
 
 time.sleep(2)
+
+#avoid window alert that doesn't like firefox
+if config.browser == "firefox":
+    driver.switch_to.alert.accept();
+    driver.switch_to.default_content()
 
 #button 我已知晓
 lpath="/html/body/div[9]/div[3]/div/button"
@@ -93,19 +103,24 @@ time.sleep(3)
 found = 0
 for t in range(100000):
 
-    time.sleep(1)
+    time.sleep(2)
+
     #button 确认
     lpath="/html/body/div[6]/div[3]/div/button"
     lelem=driver.find_element_by_xpath(lpath)
     lelem.click()
+
+    time.sleep(1)
 
     #select
     lpath="/html/body/div[3]/div[1]/div[2]/table/tbody/tr[1]/td/div[2]/select"
     lelem=Select(driver.find_element_by_xpath(lpath))
     lelem.select_by_visible_text(config.address)
 
+    time.sleep(1)
+
     #loop on the calendar page
-    for j in range(2):
+    for j in range(4):
         if j % 2 == 0:
             driver.find_elements_by_css_selector(".ui-icon-circle-triangle-e")[0].click()
         else:
