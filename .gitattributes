@@ -1,0 +1,2 @@
+# Detecting all py.example as python.
+*.py.example linguist-language=python
