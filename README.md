@@ -15,7 +15,7 @@ The system is too basic and does not allow to leave a mail address to be informe
 Also, the webpage under Firefox gives an alert that tells to use Chrome. Why ? no reason given.
 Tried under Firefox and it works just fine.
 
-![Y U NO](bonus/yunogivemeappointment.png)
+![Y U NO](readme_assets/yunogivemeappointment.png)
 
 ## Solution
 
@@ -29,7 +29,7 @@ A mail is sent only when time slots have available appointments.
 
 Script running as below:
 
-![scrap](bonus/peek_calendar.gif)
+![scrap](readme_assets/peek_calendar.gif)
 
 # How to use
 
@@ -67,6 +67,6 @@ source venv.sh
 
 If you'd like to support me, please give a star or watch. Fill up some issues. Show some respect to me :
 
-![I NEED DOLLARS](bonus/fabienwang_needs_bitcoin.svg)
+![I NEED DOLLARS](readme_assets/fabienwang_needs_bitcoin.svg)
 
 Address: `bc1qq3ujwjsp0lsedpjl90autue2e5uuw5mmrynmtj`
