@@ -2,6 +2,7 @@ import smtplib
 import time
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from typing import Any, Callable, List
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
@@ -9,135 +10,172 @@ from selenium.webdriver.support.ui import Select
 
 import config
 
+OriginalFunc = Callable[[Any], Any]
+DecoratedFunc = Callable[[Any], Any]
+Driver = webdriver.Remote
 
-############################################################
 
-def send_mail(to_address, subject, body):
-    smtp_user = config.smtp_user
-    smtp_password = config.smtp_password
-    server = config.smtp_server
-    port = 587
+def sleep_after(seconds: int) -> Callable[[OriginalFunc], DecoratedFunc]:
+    def wrapper(func: OriginalFunc) -> DecoratedFunc:
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
+            r: Any = func(*args, **kwargs)
+            time.sleep(seconds)
+            return r
 
+        return wrapped
+
+    return wrapper
+
+
+def get_driver() -> Driver:
+    return webdriver.Remote(
+        desired_capabilities=(
+            DesiredCapabilities.FIREFOX if config.browser == "firefox" else DesiredCapabilities.CHROME
+        )
+    )
+
+
+@sleep_after(2)
+def load_website(driver: Driver) -> None:
+    driver.get(config.url)
+
+
+@sleep_after(1)
+def get_folder_page(driver: Driver) -> None:
+    l_path = "/html/body/div[9]/div[3]/div/button"
+    l_elem = driver.find_element_by_xpath(l_path)
+    l_elem.click()
+
+    # link 继续未完成的申请预约
+    l_path = "/html/body/div[2]/div[1]/ul/li[2]/p[2]/span/a"
+    l_elem = driver.find_element_by_xpath(l_path)
+    l_elem.click()
+
+
+@sleep_after(1)
+def answer_pop_up(driver: Driver) -> None:
+    l_path = "/html/body/div[5]/div[2]/div[2]/table/tbody/tr[1]/td[2]/input"
+    record_number_huifu = driver.find_element_by_xpath(l_path)
+    record_number_huifu.send_keys(config.record_number_huifu)
+
+    # select 验证问题
+    l_path = "/html/body/div[5]/div[2]/div[2]/table/tbody/tr[2]/td[2]/select"
+    l_elem = Select(driver.find_element_by_xpath(l_path))
+    l_elem.select_by_visible_text(config.question_huifu)
+
+    # input 答 案
+    l_path = "/html/body/div[5]/div[2]/div[2]/table/tbody/tr[3]/td[2]/input"
+    answer_huifu = driver.find_element_by_xpath(l_path)
+    answer_huifu.send_keys(config.answer_huifu)
+
+    # button 提交
+    l_path = "/html/body/div[5]/div[3]/div/button[1]"
+    l_elem = driver.find_element_by_xpath(l_path)
+    l_elem.click()
+
+
+@sleep_after(5)
+def go_to_appointments(driver: Driver) -> None:
+    l_path = "/html/body/div[3]/div[1]/div[2]/form/p[2]/input[2]"
+    l_elem = driver.find_element_by_xpath(l_path)
+    l_elem.click()
+
+
+@sleep_after(2)
+def attempt(driver: Driver) -> bool:
+    confirm(driver)
+    select(driver)
+    return loop_calendar(driver)
+
+
+@sleep_after(2)
+def confirm(driver: Driver) -> None:
+    l_path = "/html/body/div[6]/div[3]/div/button"
+    l_elem = driver.find_element_by_xpath(l_path)
+    l_elem.click()
+
+
+@sleep_after(1)
+def select(driver: Driver) -> None:
+    l_path = "/html/body/div[3]/div[1]/div[2]/table/tbody/tr[1]/td/div[2]/select"
+    l_elem = Select(driver.find_element_by_xpath(l_path))
+    l_elem.select_by_visible_text(config.address)
+
+
+@sleep_after(2)
+def loop_calendar(driver: Driver) -> bool:
+    for j in range(4):
+        found: bool = loop_calendar_inner(driver, j)
+        if found:
+            return True
+
+
+def loop_calendar_inner(driver: Driver, j: int) -> bool:
+    if not j % 2:
+        driver.find_elements_by_css_selector(".ui-icon-circle-triangle-e")[0].click()
+        return False
+
+    driver.find_elements_by_css_selector(".ui-icon-circle-triangle-w")[0].click()
+    for span in driver.find_elements_by_css_selector('.fc-event-title'):
+        space: List[str] = span.text.split('/')
+
+        if space[0] == space[1]:
+            continue
+
+        print(config.console_message)
+
+        if config.mail == 1:
+            send_mail(config.mail_recipient, config.mail_title, config.mail_message)
+
+        return True
+    return False
+
+
+def send_mail(to_address: str, subject: str, body: str, port: int = 587) -> None:
     msg = MIMEMultipart("alternative")
-    msg["Subject"] = subject
-    msg["From"] = smtp_user
-    msg["To"] = to_address
-    msg["Cc"] = smtp_user
+
+    msg["Subject"]: str = subject
+    msg["From"]: str = config.smtp_user
+    msg["To"]: str = to_address
+    msg["Cc"]: str = config.smtp_user
+
     msg.attach(MIMEText(body, "html"))
-    s = smtplib.SMTP(server, port)
+    s: smtplib.SMTP = smtplib.SMTP(config.smtp_server, port)
     # s.connect(server, port)
+
     s.ehlo()
     s.starttls()
+
     # s.ehlo()
-    s.login(smtp_user, smtp_password)
-    s.sendmail(smtp_user, to_address, msg.as_string())
+    s.login(config.smtp_user, config.smtp_password)
+    s.sendmail(config.smtp_user, to_address, msg.as_string())
     s.quit()
 
 
-############################################################
+def main() -> None:
+    driver: Driver = get_driver()
+    driver.maximize_window()
+    load_website(driver)
 
-if config.browser == "firefox":
-    driver = webdriver.Remote(
-        command_executor='http://127.0.0.1:4444/wd/hub',
-        desired_capabilities=DesiredCapabilities.FIREFOX)
-else:
-    driver = webdriver.Remote(
-        command_executor='http://127.0.0.1:4444/wd/hub',
-        desired_capabilities=DesiredCapabilities.CHROME)
+    if config.browser == "firefox":
+        driver.switch_to.alert.accept()
+        driver.switch_to.default_content()
 
-driver.maximize_window()
+    get_folder_page(driver)
+    answer_pop_up(driver)
+    go_to_appointments(driver)
 
-# open URI
-driver.get(config.url)
+    attempt_number: int = 0
+    found: bool = False
 
-time.sleep(2)
+    while not found:
+        if attempt_number:
+            driver.refresh()
 
-# avoid window alert that doesn't like firefox
-if config.browser == "firefox":
-    driver.switch_to.alert.accept()
-    driver.switch_to.default_content()
+        attempt_number += 1
+        print(f"Trail number: {attempt_number}")
+        found: bool = attempt(driver)
 
-# button 我已知晓
-lpath = "/html/body/div[9]/div[3]/div/button"
-lelem = driver.find_element_by_xpath(lpath)
-lelem.click()
 
-# link 继续未完成的申请预约
-lpath = "/html/body/div[2]/div[1]/ul/li[2]/p[2]/span/a"
-lelem = driver.find_element_by_xpath(lpath)
-lelem.click()
-
-time.sleep(1)
-
-# POPUP
-# input 档 案 号
-lpath = "/html/body/div[5]/div[2]/div[2]/table/tbody/tr[1]/td[2]/input"
-recordNumberHuifu = driver.find_element_by_xpath(lpath)
-recordNumberHuifu.send_keys(config.record_number_huifu)
-
-# select 验证问题
-lpath = "/html/body/div[5]/div[2]/div[2]/table/tbody/tr[2]/td[2]/select"
-lelem = Select(driver.find_element_by_xpath(lpath))
-lelem.select_by_visible_text(config.question_huifu)
-
-# input 答 案
-lpath = "/html/body/div[5]/div[2]/div[2]/table/tbody/tr[3]/td[2]/input"
-answerHuifu = driver.find_element_by_xpath(lpath)
-answerHuifu.send_keys(config.answer_huifu)
-
-# button 提交
-lpath = "/html/body/div[5]/div[3]/div/button[1]"
-lelem = driver.find_element_by_xpath(lpath)
-lelem.click()
-
-time.sleep(1)
-
-# button 进入预约
-lpath = "/html/body/div[3]/div[1]/div[2]/form/p[2]/input[2]"
-lelem = driver.find_element_by_xpath(lpath)
-lelem.click()
-
-time.sleep(3)
-
-found = 0
-for t in range(100000):
-
-    time.sleep(2)
-
-    # button 确认
-    lpath = "/html/body/div[6]/div[3]/div/button"
-    lelem = driver.find_element_by_xpath(lpath)
-    lelem.click()
-
-    time.sleep(1)
-
-    # select
-    lpath = "/html/body/div[3]/div[1]/div[2]/table/tbody/tr[1]/td/div[2]/select"
-    lelem = Select(driver.find_element_by_xpath(lpath))
-    lelem.select_by_visible_text(config.address)
-
-    time.sleep(1)
-
-    # loop on the calendar page
-    for j in range(4):
-        if j % 2 == 0:
-            driver.find_elements_by_css_selector(".ui-icon-circle-triangle-e")[0].click()
-        else:
-            driver.find_elements_by_css_selector(".ui-icon-circle-triangle-w")[0].click()
-            for span in driver.find_elements_by_css_selector('.fc-event-title'):
-                # print(span.text)
-                space = span.text.split('/')
-                if space[0] != space[1]:
-                    print(config.console_message)
-                    found = 1
-                    if config.mail == 1:
-                        send_mail(config.mail_recipient, config.mail_title, config.mail_message)
-                    break
-        time.sleep(2)
-
-    if found == 1:
-        break
-
-    driver.refresh()
-
-driver.close()
+if __name__ == '__main__':
+    main()
