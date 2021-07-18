@@ -1,4 +1,3 @@
 #!/usr/bin/env bash
 
-python -m pip install --upgrade pip
-python -m pip install selenium
+python -m pip install requirements.txt
