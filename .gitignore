@@ -1,4 +1,12 @@
-__pycache__/
+# Jetbrains Tools
+.idea
+
+# Python generated cache and environment
+__pycache__
+venv
+
+# Secret config file, see config.py.example
 config.py
-venv/
-server/
+
+# Selenium server
+server
