@@ -1,30 +1,14 @@
-import smtplib
-import time
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from typing import Any, Callable, List
+from typing import List
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.support.ui import Select
 
-import config
+from app import config
+from app.mailing import send_mail
+from app.utils import sleep_after
 
-OriginalFunc = Callable[[Any], Any]
-DecoratedFunc = Callable[[Any], Any]
 Driver = webdriver.Remote
-
-
-def sleep_after(seconds: int) -> Callable[[OriginalFunc], DecoratedFunc]:
-    def wrapper(func: OriginalFunc) -> DecoratedFunc:
-        def wrapped(*args: Any, **kwargs: Any) -> Any:
-            r: Any = func(*args, **kwargs)
-            time.sleep(seconds)
-            return r
-
-        return wrapped
-
-    return wrapper
 
 
 def get_driver() -> Driver:
@@ -131,27 +115,6 @@ def loop_calendar_inner(driver: Driver, j: int) -> bool:
     return False
 
 
-def send_mail(to_address: str, subject: str, body: str, port: int = 587) -> None:
-    msg = MIMEMultipart("alternative")
-
-    msg["Subject"]: str = subject
-    msg["From"]: str = config.smtp_user
-    msg["To"]: str = to_address
-    msg["Cc"]: str = config.smtp_user
-
-    msg.attach(MIMEText(body, "html"))
-    s: smtplib.SMTP = smtplib.SMTP(config.smtp_server, port)
-    # s.connect(server, port)
-
-    s.ehlo()
-    s.starttls()
-
-    # s.ehlo()
-    s.login(config.smtp_user, config.smtp_password)
-    s.sendmail(config.smtp_user, to_address, msg.as_string())
-    s.quit()
-
-
 def main() -> None:
     driver: Driver = get_driver()
     driver.maximize_window()
@@ -175,7 +138,3 @@ def main() -> None:
         attempt_number += 1
         print(f"Trail number: {attempt_number}")
         found: bool = attempt(driver)
-
-
-if __name__ == '__main__':
-    main()

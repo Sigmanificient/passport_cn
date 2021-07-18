@@ -53,7 +53,7 @@ Run the selenium server (and leave it running)
 
 Configure the way you want:
 ```bash
-cp config.py.example config.py
+cp app/config.py.example app/config.py
 ```
 By default `browser="firefox"` you can use `browser="chrome"` if you prefer.
 

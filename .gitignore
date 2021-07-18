@@ -6,7 +6,7 @@ __pycache__
 venv
 
 # Secret config file, see config.py.example
-config.py
+app/config.py
 
 # Selenium server
 server
